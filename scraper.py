@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import re
 from config import *
 from models import Player, Match, EmptyPlayer
+import traceback
 
 from datetime import date, datetime, time, timedelta
 from typing import Optional
@@ -38,17 +39,38 @@ def parse_match_element(el: str) -> Match:
         match_type="Toto",
     )
 
+import unicodedata
+
+def clean_string(s: str) -> str:
+    # Normalize accented characters (é -> e, ñ -> n, etc.)
+    s = unicodedata.normalize('NFD', s)
+    s = s.encode('ascii', 'ignore').decode('utf-8')
+
+    # Remove all characters except letters, digits, commas, spaces, dash, and parentheses
+    s = re.sub(r'[^a-zA-Z0-9,\s\-\(\)]', '', s)
+
+    # Collapse multiple spaces (optional)
+    s = re.sub(r'\s+', ' ', s)
+
+    return s.strip()
+
 def parse_player_info(player_str: str) -> dict:
-    # Pattern explanation:
-    # Optional level: one or more digits or comma, followed by a dash
-    # Name: characters until a space before '('
-    # Position: inside parentheses
-    pattern = r'^(?:(?P<level>[\d,]+)-)?(?P<name>[\w\s]+)\s*\((?P<position>\w+)\)$'
-    match = re.match(pattern, player_str.strip())
-    if not match:
-        return None  # or raise an error
+    # Improved regex pattern:
+    # Optional level like "0,66-", captured as "level"
+    # Name allows letters, accents, spaces, hyphens
+    # Position is inside parentheses
+    pattern = r'^(?:(?P<level>[\d,]+)-)?(?P<name>[^()]+?)(?:\s*\((?P<position>[^()]+)\))?$'
+    match = re.match(pattern, player_str.strip(), re.UNICODE)
     
-    return match.groupdict()
+    if (not match) or (match.group("name").strip().lower() == "libre"):
+        # print(player_str)
+        raise ValueError(f"Invalid player format: {player_str}")
+    
+    return {
+        "level": match.group("level"),
+        "name": match.group("name").strip(),
+        "position": match.group("position")
+    }
 
 def parse_match_level(level_str: str) -> float:
     match = re.search(r"Niveaux:\s*([\d,]+)\s*-\s*([\d,]+)", level_str)
@@ -65,7 +87,7 @@ def parse_match_level(level_str: str) -> float:
     return (min_level, max_level)
 
 def parse_player_level(level_str: str) -> float:
-    return float(min_level_str.replace(',', '.'))
+    return float(level_str.replace(',', '.'))
 
 def parse_match_element2(el: str) -> Match:
     """
@@ -107,22 +129,29 @@ def parse_match_element2(el: str) -> Match:
         # match_url_pat_re = re.compile(r'.*DataListPartidas_ctl03_WUCElementoPartidaCuadro_HyperLinkHorario$')
         # match_url = player_match_el.find("a", id=match_url_pat_re)
         # print(match_url)
-        court = match_text[:8].strip()
+        court = match_text[:9].strip()
         start_time = match_text[9:].strip()
         players = []
+
         for pat in ["EquipoA_ctl00", "EquipoA_ctl01", "EquipoB_ctl00", "EquipoB_ctl01"]:
             player_pat_re = re.compile(f".*{pat}_WUCParticipantePartidaCuadro_LabelTexto$")
             try:
                 player = player_match_el.find("span", id=player_pat_re).text.strip()
                 # print(f"{pat}: {player}")
+                # print(player)
+                player = clean_string(player)
+                # print(player)
                 player_info = parse_player_info(player)
                 if player_info["level"]:
                     player_info["level"] = parse_player_level(player_info["level"])
                 
                 link_player_pat_re = re.compile(f".*{pat}_WUCParticipantePartidaCuadro_HyperLinkJugador$")
                 link = player_match_el.find("a", id=link_player_pat_re)["href"]
-                players.append(Player(name=player_info["name"], level=player_info["level"], link=link, position=player_info["position"]))
+                players.append(Player(name=player_info["name"].strip(), level=player_info["level"], link=link, position=player_info["position"]))
             except Exception as e:
+                # print(e)
+                # print(player)
+                # traceback.print_exc()
                 players.append(EmptyPlayer)
 
         return Match(
@@ -167,7 +196,7 @@ def get_matches2() -> list[Match]:
 
     matches = []
 
-    for i in range(3):
+    for i in range(4):
         day = today + timedelta(days=i)
         print(day.isoformat())  # YYYY-MM-DD string
 

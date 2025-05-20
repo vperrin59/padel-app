@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
-from typing import Optional
+from typing import Optional, Iterator
+
+DEFAULT_PLAYER_NAME = "libre"
 
 @dataclass
 class BasePlayer:
@@ -8,7 +10,10 @@ class BasePlayer:
 
     def is_empty(self) -> bool:
         # Treat empty or "libre" (free) players as empty
-        return self.name.strip().lower() in ("", "libre")
+        return self.name.strip().lower() in ("", DEFAULT_PLAYER_NAME)
+
+    def __str__(self):
+        return f"{self.name}"
 
 @dataclass
 class Player(BasePlayer):
@@ -16,7 +21,10 @@ class Player(BasePlayer):
     link: str
     position: str
 
-EmptyPlayer = BasePlayer(name="Libre")
+    def __str__(self):
+        return f"{self.name} ({self.level})"
+
+EmptyPlayer = BasePlayer(name=DEFAULT_PLAYER_NAME)
 
 @dataclass
 class Match:
@@ -42,37 +50,27 @@ class Match:
     def __post_init__(self):
         # Compute the winner right after init
         self.players_needed = sum(
-            1 for p in self.a_team + self.b_team if p.name.lower() == "libre"
+            1 for p in self.a_team + self.b_team if p.is_empty()
         )
         self.min_level = self.level - 1
         self.max_level = self.level + 1
 
-    def matches_criteria(self, criteria: dict) -> bool:
-        """Custom match filtering based on a criteria dict."""
-        if 'location' in criteria and self.location != criteria['location']:
-            return False
-        if 'level' in criteria and self.level not in criteria['level']:
-            return False
-        if 'after' in criteria and self.date.time() < criteria['after']:
-            return False
-        if 'before' in criteria and self.date.time() > criteria['before']:
-            return False
-        if 'players_needed' in criteria and self.players_needed > criteria['players_needed']:
-            return False
-        return True
-
-    def matches_players_level_criteria(self, min_players_level: float) -> bool:
-        """ Minimum level for all active players"""
-        res = True
-        for p in (a_team + b_team):
-            if not p.is_empty():
-                if p.level:
-                    if p.level <= min_players_level:
-                        return False
+    def active_players(self) -> Iterator[Player]:
+        for player in self.a_team + self.b_team:
+            if not player.is_empty():
+                yield player
 
     def __hash__(self):
         # Optional: allows using Match in a set for deduplication
         return hash((self.date, self.location, self.level, self.a_team, self.b_team))
 
     def __str__(self):
-        return f"[{self.date.strftime('%Y-%m-%d %H:%M')}] {self.location} ({self.level}) - {self.match_type}, needs {self.players_needed}"
+        a_team_str = "A: "
+        b_team_str = "B:"
+        for p in self.a_team:
+            a_team_str += str(p)
+            a_team_str += "-"
+        for p in self.b_team:
+            b_team_str += str(p)
+            b_team_str += "-"
+        return f"[{self.date.strftime('%Y-%m-%d %H:%M')}] {self.court} ({self.level}), needs {self.players_needed}" + f"\n{a_team_str}" + f"\n{b_team_str}"
