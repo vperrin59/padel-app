@@ -12,7 +12,7 @@ URL = "https://urbanpadellausanne.matchpoint.com.es"
 CHECK_INTERVAL_MINUTES = 5
 NOTIFICATION_METHOD = "telegram"
 
-DAY_CHECKING_PERIOD = 5
+DAY_CHECKING_PERIOD = 7
 
 MY_LEVEL = 2.13
 
