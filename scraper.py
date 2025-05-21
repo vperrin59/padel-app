@@ -25,6 +25,9 @@ class ScrapePlayer(Player):
         else:
             self.note = 0.0
 
+    def __hash__(self):
+        return super().__hash__()
+
 def get_page_html() -> str:
     """Fetch the HTML of the match page."""
     response = requests.get(URL)
@@ -199,8 +202,8 @@ def parse_match_element2(el: str) -> UrbanMatch:
             date=datetime.strptime(f"{date.today()} {start_time}", "%Y-%m-%d %H:%M"),
             location="Lausanne",
             level=(min_level + max_level) / 2,
-            a_team=players[:2],
-            b_team=players[-2:],
+            a_team=tuple(players[:2]),
+            b_team=tuple(players[-2:]),
             court=court
         )
     else:
@@ -236,7 +239,7 @@ def get_matches2() -> list[Match]:
 
     matches = []
 
-    for i in range(4):
+    for i in range(DAY_CHECKING_PERIOD):
         day = today + timedelta(days=i)
         print(day.isoformat())  # YYYY-MM-DD string
 

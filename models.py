@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
 from typing import Optional, Iterator
 from enum import IntEnum
+import hashlib
 
 DEFAULT_PLAYER_NAME = "libre"
 
@@ -16,6 +17,9 @@ class BasePlayer:
     def __str__(self):
         return f"{self.name}"
 
+    def __hash__(self):
+        return hash((self.name))
+
 @dataclass
 class Player(BasePlayer):
     level: float
@@ -25,6 +29,9 @@ class Player(BasePlayer):
 
     def __str__(self):
         return f"{self.name} ({self.level})"
+
+    def __hash__(self):
+        return hash((self.name))
 
 EmptyPlayer = BasePlayer(name=DEFAULT_PLAYER_NAME)
 
@@ -39,8 +46,8 @@ class Match:
     date: datetime          # Full date and time of the match
     location: str           # e.g. "Lausanne - Padel Club"
     level: str              # e.g. "Intermediate", "Advanced"
-    a_team: list[Player]
-    b_team: list[Player]
+    a_team: tuple[Player]
+    b_team: tuple[Player]
     duration: int
     court: Optional[str] = None  # e.g. "Court 1", if available
 
@@ -62,9 +69,15 @@ class Match:
             if not player.is_empty():
                 yield player
 
+    def stable_hash(self) -> int:
+        raw = f"{self.date.isoformat()}|{self.court}|{self.a_team[0].name}|{self.a_team[1].name}|{self.b_team[0].name}|{self.b_team[1].name}"
+        digest = hashlib.sha256(raw.encode("utf-8")).digest()
+        return int.from_bytes(digest[:8], byteorder='big', signed=False)
+
     def __hash__(self):
         # Optional: allows using Match in a set for deduplication
-        return hash((self.date, self.location, self.level, self.a_team, self.b_team))
+        # return hash((self.date, self.location, self.level, self.a_team, self.b_team))
+        return hash(self.date.isoformat() + self.location)
 
     def __str__(self):
         a_team_str = "A: "
@@ -89,6 +102,7 @@ class UrbanMatch(Match):
 
     duration: int = field(init=False)
     court_e: UrbanCourt = field(init=False)
+    location: str = field(init="Lausanne")
 
     def parse_court(self, src: str) -> UrbanCourt:
         if src == "Terrain 1":
@@ -109,3 +123,6 @@ class UrbanMatch(Match):
             self.duration = 90
         else:
             self.duration = 60
+
+    def __hash__(self):
+        return super().__hash__()

@@ -60,6 +60,14 @@ class MatchPartnerNameFilter(BaseMatchFilter):
                 return False
         return True
 
+filters: list[BaseMatchFilter] = [
+    MatchOpenFilter(),
+    MatchFutureFilter(),
+    MatchDurationFilter(duration=90),
+    MatchMyLevelFilter(my_level=MY_LEVEL),
+    MatchPartnerLevelFilter(level=MIN_PARTNER_LEVEL),
+]
+
 if __name__ == "__main__":
     filters: list[BaseMatchFilter] = [
         MatchOpenFilter(),
