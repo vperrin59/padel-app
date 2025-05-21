@@ -1,7 +1,10 @@
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# Load .env only if running locally (not in GitHub Actions)
+if not os.getenv("GITHUB_ACTIONS"):
+    load_dotenv()  # Loads environment variables from .env into os.environ
+
 TELEGRAM_API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
