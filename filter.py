@@ -21,16 +21,12 @@ class MatchFutureFilter(BaseMatchFilter):
     def __call__(self, match: Match) -> bool:
         return match.date >= datetime.now()
 
-class MatchTimeFilter(BaseMatchFilter):
-    def __init__(self, time: float):
-        self.time = time
+class MatchDurationFilter(BaseMatchFilter):
+    def __init__(self, duration: int):
+        self.duration = duration
 
     def __call__(self, match: Match) -> bool:
-        # Filter by number of players needed
-        if match.min_level <= self.my_level <= match.max_level:
-            return True
-        else:
-            return False
+        return match.duration == self.duration
 
 class MatchMyLevelFilter(BaseMatchFilter):
     def __init__(self, my_level: float):
@@ -68,6 +64,7 @@ if __name__ == "__main__":
     filters: list[BaseMatchFilter] = [
         MatchOpenFilter(),
         MatchFutureFilter(),
+        MatchDurationFilter(duration=90),
         MatchMyLevelFilter(my_level=MY_LEVEL),
         MatchPartnerLevelFilter(level=MIN_PARTNER_LEVEL),
     ]

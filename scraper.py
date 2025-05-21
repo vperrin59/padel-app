@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from config import *
-from models import Player, Match, EmptyPlayer
+from models import Player, Match, EmptyPlayer, UrbanCourt, UrbanMatch
 import traceback
 import unicodedata
 
@@ -117,9 +117,9 @@ def fetch_player_level(url: str) -> float:
     print(level)
     print(note)
 
-def parse_match_element2(el: str) -> Match:
+def parse_match_element2(el: str) -> UrbanMatch:
     """
-        Parse a single HTML block into a Match object.
+        Parse a single HTML block into a UrbanMatch object.
         First div is the URL link
         Then we need to parse players in the next sibling div
     """
@@ -195,11 +195,10 @@ def parse_match_element2(el: str) -> Match:
                 # traceback.print_exc()
                 players.append(EmptyPlayer)
 
-        return Match(
+        return UrbanMatch(
             date=datetime.strptime(f"{date.today()} {start_time}", "%Y-%m-%d %H:%M"),
             location="Lausanne",
             level=(min_level + max_level) / 2,
-            match_type="Toto",
             a_team=players[:2],
             b_team=players[-2:],
             court=court

@@ -7,11 +7,6 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 URL = "https://urbanpadellausanne.matchpoint.com.es"
 CHECK_INTERVAL_MINUTES = 5
-CRITERIA = {
-    "location": "Lausanne",
-    "level": ["intermediate", "advanced"],
-    "time_range": ("18:00", "22:00"),
-}
 NOTIFICATION_METHOD = "telegram"
 
 MY_LEVEL = 2.13
