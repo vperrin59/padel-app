@@ -20,6 +20,7 @@ class Player(BasePlayer):
     level: float
     link: str
     position: str
+    note: Optional[float] = None
 
     def __str__(self):
         return f"{self.name} ({self.level})"
@@ -46,6 +47,7 @@ class Match:
     players_needed: int = field(init=False)
     min_level: float = field(init=False)
     max_level: float = field(init=False)
+    duration: float = field(init=False)
 
     def __post_init__(self):
         # Compute the winner right after init

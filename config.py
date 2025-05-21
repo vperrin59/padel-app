@@ -1,3 +1,10 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+TELEGRAM_API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
 URL = "https://urbanpadellausanne.matchpoint.com.es"
 CHECK_INTERVAL_MINUTES = 5
 CRITERIA = {

@@ -4,9 +4,26 @@ import re
 from config import *
 from models import Player, Match, EmptyPlayer
 import traceback
+import unicodedata
 
 from datetime import date, datetime, time, timedelta
 from typing import Optional
+from dataclasses import dataclass
+
+@dataclass
+class ScrapePlayer(Player):
+
+    def upd_from_url(self):
+        url = urban_link_prefix + self.link
+        response = requests.get(url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+        self.level = parse_player_level(soup.find("span", id=re.compile(r".*ctl00_WUCRegistroNivelJuego_LabelValorNivel$")).text.strip())
+        note = soup.find("span", id=re.compile(r".*_LabelValorPuntuacionRanking$"))
+        if note:
+            self.note = parse_player_level(note.text.strip())
+        else:
+            self.note = 0.0
 
 def get_page_html() -> str:
     """Fetch the HTML of the match page."""
@@ -38,8 +55,6 @@ def parse_match_element(el: str) -> Match:
         level=level,
         match_type="Toto",
     )
-
-import unicodedata
 
 def clean_string(s: str) -> str:
     # Normalize accented characters (é -> e, ñ -> n, etc.)
@@ -88,6 +103,19 @@ def parse_match_level(level_str: str) -> float:
 
 def parse_player_level(level_str: str) -> float:
     return float(level_str.replace(',', '.'))
+
+def fetch_player_level(url: str) -> float:
+    response = requests.get(url)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+    level = soup.find("span", id=re.compile(r".*ctl00_WUCRegistroNivelJuego_LabelValorNivel$")).text.strip()
+    note = soup.find("span", id=re.compile(r".*_LabelValorPuntuacionRanking$"))
+    if note:
+        note = note.text.strip()
+    else:
+        note = "0.0"
+    print(level)
+    print(note)
 
 def parse_match_element2(el: str) -> Match:
     """
@@ -142,12 +170,25 @@ def parse_match_element2(el: str) -> Match:
                 player = clean_string(player)
                 # print(player)
                 player_info = parse_player_info(player)
-                if player_info["level"]:
-                    player_info["level"] = parse_player_level(player_info["level"])
-                
                 link_player_pat_re = re.compile(f".*{pat}_WUCParticipantePartidaCuadro_HyperLinkJugador$")
                 link = player_match_el.find("a", id=link_player_pat_re)["href"]
-                players.append(Player(name=player_info["name"].strip(), level=player_info["level"], link=link, position=player_info["position"]))
+                if player_info["level"]:
+                    player_info["level"] = parse_player_level(player_info["level"])
+                else:
+                    # Fetch in direct link
+                    # https://urbanpadellausanne.matchpoint.com.es/Perfil.aspx?id=159e8bb24a5a9400ea274018c752379d&return_url=https%3a%2f%2furbanpadellausanne.matchpoint.com.es%2fMatches%2fGrid.aspx%3ff%3d21%2f05%2f2025%26c%3d3
+                    # url = urban_link_prefix + link
+                    # print(url)
+                    # fetch_player_level(url)
+                    pass
+                p = ScrapePlayer(
+                    name=player_info["name"].strip(), 
+                    level=player_info["level"], 
+                    link=link, 
+                    position=player_info["position"]
+                    )
+                p.upd_from_url()
+                players.append(p)
             except Exception as e:
                 # print(e)
                 # print(player)
