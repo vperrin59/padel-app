@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main  # or 'master' or any branch you use
+  schedule:
+    # Runs every hour from 9:00 to 20:00 (UTC)
+    - cron: '0 8-19 * * *'
 
 jobs:
   run-script:
