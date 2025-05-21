@@ -13,6 +13,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Restore cache
+      uses: actions/cache@v3
+      with:
+        path: seen_matches.pkl
+        key: padel-cache-${{ runner.os }}
+        restore-keys: padel-cache-
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -25,4 +32,10 @@ jobs:
 
     - name: Run script
       run: |
-        python scraper.py
+        python main.py
+
+    - name: Save cache
+      uses: actions/cache@v3
+      with:
+        path: seen_matches.pkl
+        key: padel-cache-${{ runner.os }}
