@@ -41,7 +41,8 @@ jobs:
         python main.py
 
     - name: Save cache
-      uses: actions/cache@v3
+      uses: actions/cache/save@v3
+      if: always()
       with:
         path: seen_matches.pkl
-        key: padel-cache-${{ runner.os }}
+        key: padel-cache-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
