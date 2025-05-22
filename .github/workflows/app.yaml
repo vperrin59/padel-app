@@ -7,7 +7,8 @@ on:
   schedule:
     # Runs every hour from 9:00 to 20:00 (UTC)
     - cron: '0 8-19 * * *'
-
+  workflow_dispatch:
+  
 jobs:
   run-script:
     runs-on: ubuntu-latest
@@ -20,7 +21,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: seen_matches.pkl
-        key: padel-cache-${{ runner.os }}
+        key: padel-cache-${{ runner.os }}-${{ runner.arch }}
         restore-keys: padel-cache-
 
     - name: Set up Python
