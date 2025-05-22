@@ -6,3 +6,5 @@
     * raw match
     * filtered match
     * notified match
+* Only save cache in github if it changed compared to last time
+* Speedup the scraper by making sure we only fetch players level once per run
