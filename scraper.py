@@ -13,18 +13,28 @@ from dataclasses import dataclass
 @dataclass
 class ScrapePlayer(Player):
 
-    def upd_from_url(self):
-        url = urban_link_prefix + self.link
-        response = requests.get(url)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
-        self.level = parse_player_level(soup.find("span", id=re.compile(r".*ctl00_WUCRegistroNivelJuego_LabelValorNivel$")).text.strip())
-        note = soup.find("span", id=re.compile(r".*_LabelValorPuntuacionRanking$"))
-        if note:
-            self.note = parse_player_level(note.text.strip())
-        else:
-            self.note = 0.0
+    scraped_players = set()
 
+    def register_player(self):
+        ScrapePlayer.scraped_players.add(self.name)
+
+
+    def upd_from_url(self):
+        if self.name in scraped_players:
+            pass
+        else:
+            url = urban_link_prefix + self.link
+            response = requests.get(url)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
+            self.level = parse_player_level(soup.find("span", id=re.compile(r".*ctl00_WUCRegistroNivelJuego_LabelValorNivel$")).text.strip())
+            note = soup.find("span", id=re.compile(r".*_LabelValorPuntuacionRanking$"))
+            if note:
+                self.note = parse_player_level(note.text.strip())
+            else:
+                self.note = 0.0
+            self.register_player()
+            
     def __hash__(self):
         return super().__hash__()
 
