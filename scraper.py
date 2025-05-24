@@ -7,21 +7,20 @@ import traceback
 import unicodedata
 
 from datetime import date, datetime, time, timedelta
-from typing import Optional
+from typing import Optional, ClassVar
 from dataclasses import dataclass
 
 @dataclass
 class ScrapePlayer(Player):
 
-    scraped_players = set()
+    scraped_players: ClassVar[dict[str, float]] = {}
 
     def register_player(self):
-        ScrapePlayer.scraped_players.add(self.name)
-
+        ScrapePlayer.scraped_players[self.name] = self.level
 
     def upd_from_url(self):
-        if self.name in self.scraped_players:
-            pass
+        if self.name in ScrapePlayer.scraped_players:
+            self.level = ScrapePlayer.scraped_players[self.name]
         else:
             url = urban_link_prefix + self.link
             response = requests.get(url)
