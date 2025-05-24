@@ -56,6 +56,10 @@ class Match:
     min_level: float = field(init=False)
     max_level: float = field(init=False)
 
+    @staticmethod
+    def csv_header() -> tuple[str]:
+        return ("date","court","player_a0","player_a1","player_b0","player_b1")
+
     def __post_init__(self):
         # Compute the winner right after init
         self.players_needed = sum(
@@ -73,6 +77,9 @@ class Match:
         raw = f"{self.date.isoformat()}|{self.court}|{self.a_team[0].name}|{self.a_team[1].name}|{self.b_team[0].name}|{self.b_team[1].name}"
         digest = hashlib.sha256(raw.encode("utf-8")).digest()
         return int.from_bytes(digest[:8], byteorder='big', signed=False)
+
+    def csv_row(self) -> tuple[str]:
+        return (self.date.isoformat(),self.court,self.a_team[0].name,self.a_team[1].name,self.b_team[0].name,self.b_team[1].name)
 
     def __hash__(self):
         # Optional: allows using Match in a set for deduplication

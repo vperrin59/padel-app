@@ -20,7 +20,7 @@ class ScrapePlayer(Player):
 
 
     def upd_from_url(self):
-        if self.name in scraped_players:
+        if self.name in self.scraped_players:
             pass
         else:
             url = urban_link_prefix + self.link
@@ -202,11 +202,16 @@ def parse_match_element2(el: str) -> UrbanMatch:
                     )
                 p.upd_from_url()
                 players.append(p)
-            except Exception as e:
+            except ValueError as e:
+                if "libre" in str(e).lower():
+                    players.append(EmptyPlayer)
+                else:
+                    assert 0
+            # except Exception as e:
                 # print(e)
                 # print(player)
                 # traceback.print_exc()
-                players.append(EmptyPlayer)
+                # assert 0
 
         return UrbanMatch(
             date=datetime.strptime(f"{date.today()} {start_time}", "%Y-%m-%d %H:%M"),
