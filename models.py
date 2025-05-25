@@ -95,7 +95,7 @@ class Match:
         for p in self.b_team:
             b_team_str += str(p)
             b_team_str += "-"
-        return f"[{self.date.strftime('%Y-%m-%d %H:%M')}] {self.court} ({self.level}), needs {self.players_needed}" + f"\n{a_team_str}" + f"\n{b_team_str}"
+        return f"[{self.date.strftime('%Y-%m-%d %H:%M')} {self.date.strftime('%a')}] {self.court} ({self.level}), needs {self.players_needed}" + f"\n{a_team_str}" + f"\n{b_team_str}"
 
 class UrbanCourt(IntEnum):
     COURT_1 = 1
