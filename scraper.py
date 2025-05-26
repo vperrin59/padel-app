@@ -100,6 +100,11 @@ def parse_player_info(player_str: str) -> dict:
     }
 
 def parse_match_level(level_str: str) -> float:
+    """
+        Possible formats:
+        * Niveaux: 0,10 - 2,02
+        * Tous les niveaux
+    """
     match = re.search(r"Niveaux:\s*([\d,]+)\s*-\s*([\d,]+)", level_str)
 
     if match:
@@ -108,7 +113,13 @@ def parse_match_level(level_str: str) -> float:
         min_level = float(min_level_str.replace(',', '.'))
         max_level = float(max_level_str.replace(',', '.'))
         # print(f"Min level: {min_level}, Max level: {max_level}")
+    elif level_str == "Tous les niveaux":
+        # This is a rare case for full match usually
+        # when people of different level wanted to play together
+        min_level = 0
+        max_level = 0
     else:
+        print(level_str)
         print("No levels found")
 
     return (min_level, max_level)
@@ -263,7 +274,7 @@ def get_matches2() -> list[Match]:
         soup = BeautifulSoup(html, "html.parser")
         # print(soup)
         # match_elements = soup.find_all("div", class_="contenedorContenidoPartidas")
-        match_elements = soup.find_all("div", class_="contenedoresBannersPartidas")
+        # match_elements = soup.find_all("div", class_="contenedoresBannersPartidas")
 
         # Find all divs with class "gridviewestilocabecera"
         header_divs = soup.find_all("div", class_="gridviewestilocabecera")
