@@ -187,7 +187,19 @@ def parse_match_element2(el: str) -> UrbanMatch:
         for pat in ["EquipoA_ctl00", "EquipoA_ctl01", "EquipoB_ctl00", "EquipoB_ctl01"]:
             player_pat_re = re.compile(f".*{pat}_WUCParticipantePartidaCuadro_LabelTexto$")
             try:
-                player = player_match_el.find("span", id=player_pat_re).text.strip()
+                match = player_match_el.find("span", id=player_pat_re)
+
+                if match:
+                    player = match.text.strip()
+                else:
+                    """
+                        It can be that on some matches, there are three players in the same team
+                        In this case there will 1 less player in the other team and the code below
+                        will be covered. In this case we discard the match
+                    """
+                    print(f"{pat} not found")
+                    return None
+
                 # print(f"{pat}: {player}")
                 # print(player)
                 player = clean_string(player)
@@ -218,10 +230,12 @@ def parse_match_element2(el: str) -> UrbanMatch:
                 else:
                     assert 0
             # except Exception as e:
-                # print(e)
-                # print(player)
-                # traceback.print_exc()
-                # assert 0
+            #     print(e)
+            #     print(player)
+            #     traceback.print_exc()
+            #     print(player_match_el)
+            #     print(pat)
+            #     assert 0
 
         return UrbanMatch(
             date=datetime.strptime(f"{date.today()} {start_time}", "%Y-%m-%d %H:%M"),
